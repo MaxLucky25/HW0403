@@ -10,15 +10,11 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { BlogsService } from '../application/blogs.service';
-import { BlogQueryRepository } from '../infrastructure/query/blog.query-repository';
 import { BlogViewDto } from './view-dto/blog.view-dto';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { UpdateBlogInputDto } from './input-dto/update-blog.input.dto';
-import { PostsService } from '../../posts/application/posts.service';
 import { PostViewDto } from '../../posts/api/view-dto/post.view-dto';
-import { PostQueryRepository } from '../../posts/infrastructure/query/post.query-repository';
 import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts-query-params.input-dto';
 import { CreateBlogInputDto } from './input-dto/create-blog.input.dto';
 import {
@@ -30,15 +26,21 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { CreatePostForBlogInputDto } from '../../posts/api/input-dto/create-post-for-blog.input.dto';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreatePostForBlogCommand } from '../../posts/application/usecases/create-post-for-blog.usecase';
+import { GetAllPostsForBlogQuery } from '../../posts/application/query-usecases/get-all-posts-for-blog.usecase';
+import { CreateBlogCommand } from '../application/usecase/create-blog.usecase';
+import { UpdateBlogCommand } from '../application/usecase/update-blog.usecase';
+import { DeleteBlogCommand } from '../application/usecase/delete-blog.usecase';
+import { GetBlogByIdQuery } from '../application/query-usecase/get-blog.usecase';
+import { GetAllBlogsQuery } from '../application/query-usecase/get-all-blogs.usecase';
 
 @ApiTags('blogs')
 @Controller('blogs')
 export class BlogsController {
   constructor(
-    private blogQueryRepository: BlogQueryRepository,
-    private postQueryRepository: PostQueryRepository,
-    private blogsService: BlogsService,
-    private postsService: PostsService,
+    private commandBus: CommandBus,
+    private queryBus: QueryBus,
   ) {}
 
   @Get(':id')
@@ -46,7 +48,7 @@ export class BlogsController {
   @ApiParam({ name: 'id', description: 'Blog ID' })
   @ApiResponse({ status: 200, description: 'Blog found' })
   async getById(@Param('id') id: string): Promise<BlogViewDto> {
-    return this.blogQueryRepository.getByIdOrNotFoundFail(id);
+    return this.queryBus.execute(new GetBlogByIdQuery(id));
   }
 
   @Get()
@@ -59,7 +61,7 @@ export class BlogsController {
   async getAll(
     @Query() query: GetBlogsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
-    return this.blogQueryRepository.getAll(query);
+    return this.queryBus.execute(new GetAllBlogsQuery(query));
   }
 
   @Post()
@@ -67,7 +69,7 @@ export class BlogsController {
   @ApiBody({ type: CreateBlogInputDto })
   @ApiResponse({ status: 201, description: 'Blog created' })
   async create(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
-    return this.blogsService.create(body);
+    return this.commandBus.execute(new CreateBlogCommand(body));
   }
 
   @Put(':id')
@@ -80,7 +82,7 @@ export class BlogsController {
     @Param('id') id: string,
     @Body() body: UpdateBlogInputDto,
   ): Promise<void> {
-    return this.blogsService.updateBlog({ id }, body);
+    return this.commandBus.execute(new UpdateBlogCommand({ id }, body));
   }
 
   @Delete(':id')
@@ -89,7 +91,7 @@ export class BlogsController {
   @ApiResponse({ status: 204, description: 'Blog deleted' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id') id: string): Promise<void> {
-    return this.blogsService.deleteBlog({ id });
+    return this.commandBus.execute(new DeleteBlogCommand({ id }));
   }
 
   @Get(':id/posts')
@@ -101,7 +103,7 @@ export class BlogsController {
     @Query() query: GetPostsQueryParams,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     await this.getById(id);
-    return this.postQueryRepository.getAllPostForBlog(id, query);
+    return this.queryBus.execute(new GetAllPostsForBlogQuery(id, query));
   }
 
   @Post(':id/posts')
@@ -113,6 +115,8 @@ export class BlogsController {
     @Param('id') blogId: string,
     @Body() body: CreatePostForBlogInputDto,
   ): Promise<PostViewDto | null> {
-    return this.postsService.createPostForBlog({ blogId }, body);
+    return this.commandBus.execute(
+      new CreatePostForBlogCommand({ blogId }, body),
+    );
   }
 }

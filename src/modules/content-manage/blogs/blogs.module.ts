@@ -1,20 +1,25 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Blog, BlogSchema } from './domain/blog.entity';
 import { BlogsController } from './api/blogs.controller';
-import { BlogsService } from './application/blogs.service';
 import { BlogPersistenceModule } from './blog-persistence.module';
 import { PostPersistenceModule } from '../posts/post-persistence.module';
-import { PostsModule } from '../posts/posts.module';
+import { CqrsModule } from '@nestjs/cqrs';
+import { CreateBlogUseCase } from './application/usecase/create-blog.usecase';
+import { UpdateBlogUseCase } from './application/usecase/update-blog.usecase';
+import { DeleteBlogUseCase } from './application/usecase/delete-blog.usecase';
+import { GetBlogByIdUseCase } from './application/query-usecase/get-blog.usecase';
+import { GetAllBlogsQueryUseCase } from './application/query-usecase/get-all-blogs.usecase';
+
+const CommandHandlers = [
+  CreateBlogUseCase,
+  UpdateBlogUseCase,
+  DeleteBlogUseCase,
+];
+
+const QueryHandlers = [GetBlogByIdUseCase, GetAllBlogsQueryUseCase];
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }]),
-    BlogPersistenceModule,
-    PostPersistenceModule,
-    PostsModule,
-  ],
+  imports: [CqrsModule, BlogPersistenceModule, PostPersistenceModule],
+  providers: [...CommandHandlers, ...QueryHandlers],
   controllers: [BlogsController],
-  providers: [BlogsService],
 })
 export class BlogsModule {}

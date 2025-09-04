@@ -10,8 +10,6 @@ import {
   HttpStatus,
   HttpCode,
 } from '@nestjs/common';
-import { PostsService } from '../application/posts.service';
-import { PostQueryRepository } from '../infrastructure/query/post.query-repository';
 import { PostViewDto } from './view-dto/post.view-dto';
 import { GetPostsQueryParams } from './input-dto/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
@@ -25,13 +23,19 @@ import {
   ApiBody,
   ApiQuery,
 } from '@nestjs/swagger';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreatePostCommand } from '../application/usecases/create-post.usecase';
+import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
+import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
+import { GetPostByIdQuery } from '../application/query-usecases/get-post-by-id.usecase';
+import { GetAllPostsQuery } from '../application/query-usecases/get-all-posts.usecase';
 
 @ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(
-    private postsService: PostsService,
-    private postQueryRepository: PostQueryRepository,
+    private commandBus: CommandBus,
+    private queryBus: QueryBus,
   ) {}
 
   @Get(':id')
@@ -39,7 +43,7 @@ export class PostsController {
   @ApiParam({ name: 'id', description: 'Post ID' })
   @ApiResponse({ status: 200, description: 'Post found' })
   async getById(@Param('id') id: string): Promise<PostViewDto> {
-    return this.postQueryRepository.getByIdNotFoundFail(id);
+    return this.queryBus.execute(new GetPostByIdQuery(id));
   }
 
   @Get()
@@ -52,7 +56,7 @@ export class PostsController {
   async getAll(
     @Query() query: GetPostsQueryParams,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    return this.postQueryRepository.getAllPost(query);
+    return this.queryBus.execute(new GetAllPostsQuery(query));
   }
 
   @Post()
@@ -60,7 +64,7 @@ export class PostsController {
   @ApiBody({ type: CreatePostInputDto })
   @ApiResponse({ status: 201, description: 'Post created' })
   async create(@Body() body: CreatePostInputDto): Promise<PostViewDto> {
-    return this.postsService.create(body);
+    return this.commandBus.execute(new CreatePostCommand(body));
   }
 
   @Put(':id')
@@ -73,7 +77,7 @@ export class PostsController {
     @Param('id') id: string,
     @Body() body: UpdatePostInputDto,
   ): Promise<void> {
-    return this.postsService.updatePost({ id }, body);
+    return this.commandBus.execute(new UpdatePostCommand({ id }, body));
   }
 
   @Delete(':id')
@@ -82,6 +86,6 @@ export class PostsController {
   @ApiResponse({ status: 204, description: 'Post deleted' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePost(@Param('id') id: string): Promise<void> {
-    return this.postsService.deletePost({ id });
+    return this.commandBus.execute(new DeletePostCommand({ id }));
   }
 }

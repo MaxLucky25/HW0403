@@ -1,19 +1,33 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Post, PostSchema } from './domain/post.entity';
 import { PostsController } from './api/posts.controller';
-import { PostsService } from './application/posts.service';
-import { PostRepository } from './infrastructure/postRepository';
-import { PostQueryRepository } from './infrastructure/query/post.query-repository';
 import { BlogPersistenceModule } from '../blogs/blog-persistence.module';
+import { CqrsModule } from '@nestjs/cqrs';
+import { CreatePostUseCase } from './application/usecases/create-post.usecase';
+import { UpdatePostUseCase } from './application/usecases/update-post.usecase';
+import { DeletePostUseCase } from './application/usecases/delete-post.usecase';
+import { GetPostByIdUseCase } from './application/query-usecases/get-post-by-id.usecase';
+import { GetAllPostsQueryUseCase } from './application/query-usecases/get-all-posts.usecase';
+import { PostPersistenceModule } from './post-persistence.module';
+import { CreatePostForBlogUseCase } from './application/usecases/create-post-for-blog.usecase';
+import { GetPostsForBlogUseCase } from './application/query-usecases/get-all-posts-for-blog.usecase';
+
+const CommandHandler = [
+  CreatePostUseCase,
+  UpdatePostUseCase,
+  DeletePostUseCase,
+  CreatePostForBlogUseCase,
+];
+
+const QueryHandler = [
+  GetPostsForBlogUseCase,
+  GetPostByIdUseCase,
+  GetAllPostsQueryUseCase,
+];
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
-    BlogPersistenceModule,
-  ],
+  imports: [CqrsModule, BlogPersistenceModule, PostPersistenceModule],
+  providers: [...CommandHandler, ...QueryHandler],
   controllers: [PostsController],
-  providers: [PostsService, PostRepository, PostQueryRepository],
-  exports: [PostsService],
+  exports: [CreatePostForBlogUseCase, GetPostsForBlogUseCase],
 })
 export class PostsModule {}
