@@ -8,7 +8,6 @@ import {
   Extension,
 } from '../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../core/exceptions/domain-exception-codes';
-import { ObjectIdValidationTransformationPipe } from '../core/pipes/objID-validator-transormation-pipe-service';
 
 //функция использует рекурсию для обхода объекта children при вложенных полях при валидации
 //поставьте логи и разберитесь как она работает
@@ -41,9 +40,9 @@ export const errorFormatter = (
 };
 
 export function pipesSetup(app: INestApplication) {
-  //Глобальный пайп для валидации и трансформации входящих данных.
+  //Глобальный пайп для валидации входящих данных.
+  // ObjectIdValidationTransformationPipe теперь доступен глобально через CoreModule
   app.useGlobalPipes(
-    new ObjectIdValidationTransformationPipe(),
     new ValidationPipe({
       //class-transformer создает экземпляр dto
       //соответственно применятся значения по-умолчанию

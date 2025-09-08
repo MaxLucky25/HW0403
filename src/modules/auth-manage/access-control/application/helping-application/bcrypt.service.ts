@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
-// import {
-//   CompareDto,
-//   GenerateHashDto,
-// } from 'src/modules/auth-manage/access-control/application/helping-application/dto/bcrypt.dto';
 import { ConfigService } from '@nestjs/config';
 import { CompareDto, GenerateHashDto } from './dto/bcrypt.dto';
 

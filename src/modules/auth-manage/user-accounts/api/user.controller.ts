@@ -11,8 +11,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
-import { UsersService } from '../application/user.service';
 import { UserViewDto } from './view-dto/users.view-dto';
 import { GetUsersQueryParams } from './input-dto/get-users-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
@@ -29,6 +27,12 @@ import {
 } from '@nestjs/swagger';
 import { BasicAuthGuard } from '../../guards/basic/basic-auth.guard';
 import { SkipThrottle } from '@nestjs/throttler';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { GetUserByIdQuery } from '../application/query-usecase/get-user-by-id.usecase';
+import { GetAllUsersQuery } from '../application/query-usecase/get-all-users.usecase';
+import { CreateUserCommand } from '../application/usecase/create-user.usecase';
+import { UpdateUserCommand } from '../application/usecase/update-user.usecase';
+import { DeleteUserCommand } from '../application/usecase/delete-user.usecase';
 
 @ApiTags('users')
 @ApiBasicAuth()
@@ -37,8 +41,8 @@ import { SkipThrottle } from '@nestjs/throttler';
 @Controller('users')
 export class UsersController {
   constructor(
-    private usersQueryRepository: UsersQueryRepository,
-    private usersService: UsersService,
+    private queryBus: QueryBus,
+    private commandBus: CommandBus,
   ) {}
 
   @Get(':id')
@@ -46,7 +50,7 @@ export class UsersController {
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiResponse({ status: 200, description: 'User found' })
   async getById(@Param('id') id: string): Promise<UserViewDto> {
-    return this.usersQueryRepository.getByIdOrNotFoundFail({ id });
+    return this.queryBus.execute(new GetUserByIdQuery(id));
   }
 
   @Get()
@@ -59,7 +63,7 @@ export class UsersController {
   async getAll(
     @Query() query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
-    return this.usersQueryRepository.getAll(query);
+    return this.queryBus.execute(new GetAllUsersQuery(query));
   }
 
   @Post()
@@ -67,7 +71,7 @@ export class UsersController {
   @ApiBody({ type: CreateUserInputDto })
   @ApiResponse({ status: 201, description: 'User created' })
   async create(@Body() body: CreateUserInputDto): Promise<UserViewDto> {
-    return this.usersService.createUser(body);
+    return this.commandBus.execute(new CreateUserCommand(body));
   }
 
   @Put(':id')
@@ -80,7 +84,7 @@ export class UsersController {
     @Param('id') id: string,
     @Body() body: UpdateUserInputDto,
   ): Promise<void> {
-    return this.usersService.updateUser({ id }, body);
+    return this.commandBus.execute(new UpdateUserCommand({ id }, body));
   }
 
   @Delete(':id')
@@ -89,6 +93,6 @@ export class UsersController {
   @ApiResponse({ status: 204, description: 'User deleted' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id') id: string): Promise<void> {
-    return this.usersService.deleteUser({ id });
+    return this.commandBus.execute(new DeleteUserCommand({ id }));
   }
 }
