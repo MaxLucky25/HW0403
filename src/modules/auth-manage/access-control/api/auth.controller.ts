@@ -27,6 +27,14 @@ import { NewPasswordInputDto } from './input-dto/new-password.input.dto';
 import { RegistrationConfirmationInputDto } from './input-dto/registration-confirmation.input.dto';
 import { RegistrationEmailResendingInputDto } from './input-dto/registration-email-resending.input.dto';
 import { LoginInputDto } from './input-dto/login.input.dto';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { RegistrationUserCommand } from '../application/usecase/register-user.usecase';
+import { LoginUserCommand } from '../application/usecase/login-user.usecase';
+import { PasswordRecoveryCommand } from '../application/usecase/password-recovery.usecase';
+import { NewPasswordCommand } from '../application/usecase/new-password.usecase';
+import { RegistrationConfirmationCommand } from '../application/usecase/registration-confirmation.usecase';
+import { RegistrationEmailResendingCommand } from '../application/usecase/registration-email-resending.usecase';
+import { AuthMeQuery } from '../application/query-usecase/auth-me.usecase';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -34,6 +42,8 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private authQueryRepository: AuthQueryRepository,
+    private commandBus: CommandBus,
+    private queryBus: QueryBus,
   ) {}
 
   @Post('registration')
@@ -42,7 +52,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   registration(@Body() body: CreateUserInputDto): Promise<void> {
-    return this.authService.registerUser(body);
+    return this.commandBus.execute(new RegistrationUserCommand(body));
   }
 
   @Post('login')
@@ -65,8 +75,7 @@ export class AuthController {
     },
   })
   async login(@Body() body: LoginInputDto): Promise<{ accessToken: string }> {
-    const user = await this.authService.validateUser(body);
-    return this.authService.login(user);
+    return this.commandBus.execute(new LoginUserCommand(body));
   }
 
   @Post('password-recovery')
@@ -93,7 +102,7 @@ export class AuthController {
   async passwordRecovery(
     @Body() body: PasswordRecoveryInputDto,
   ): Promise<void> {
-    return this.authService.passwordRecovery(body);
+    return this.commandBus.execute(new PasswordRecoveryCommand(body));
   }
 
   @Post('new-password')
@@ -114,7 +123,7 @@ export class AuthController {
   })
   @ApiBody({ type: NewPasswordInputDto })
   async newPassword(@Body() body: NewPasswordInputDto): Promise<void> {
-    return this.authService.newPassword(body);
+    return this.commandBus.execute(new NewPasswordCommand(body));
   }
 
   @Post('registration-confirmation')
@@ -137,7 +146,7 @@ export class AuthController {
   async registrationConfirmation(
     @Body() body: RegistrationConfirmationInputDto,
   ): Promise<void> {
-    return this.authService.registrationConfirmation(body);
+    return this.commandBus.execute(new RegistrationConfirmationCommand(body));
   }
 
   @Post('registration-email-resending')
@@ -162,7 +171,7 @@ export class AuthController {
   async registrationEmailResending(
     @Body() body: RegistrationEmailResendingInputDto,
   ): Promise<void> {
-    return this.authService.registrationEmailResending(body);
+    return this.commandBus.execute(new RegistrationEmailResendingCommand(body));
   }
 
   @Get('me')
@@ -172,6 +181,6 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Returns user info' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
-    return this.authQueryRepository.me(user);
+    return this.queryBus.execute(new AuthMeQuery(user));
   }
 }

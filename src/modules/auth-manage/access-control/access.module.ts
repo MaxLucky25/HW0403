@@ -8,9 +8,29 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from '../guards/local/local.strategy';
 import { JwtStrategy } from '../guards/bearer/jwt.strategy';
 import { HelpingApplicationModule } from './application/helping-application/helping-application.module';
+import { CqrsModule } from '@nestjs/cqrs';
+import { RegistrationUserUseCase } from './application/usecase/register-user.usecase';
+import { LoginUserUseCase } from './application/usecase/login-user.usecase';
+import { PasswordRecoveryUseCase } from './application/usecase/password-recovery.usecase';
+import { NewPasswordUseCase } from './application/usecase/new-password.usecase';
+import { RegistrationConfirmationUserUseCase } from './application/usecase/registration-confirmation.usecase';
+import { RegistrationEmailResendingUseCase } from './application/usecase/registration-email-resending.usecase';
+import { AuthMeQueryUseCase } from './application/query-usecase/auth-me.usecase';
+
+const CommandHandler = [
+  RegistrationUserUseCase,
+  LoginUserUseCase,
+  PasswordRecoveryUseCase,
+  NewPasswordUseCase,
+  RegistrationConfirmationUserUseCase,
+  RegistrationEmailResendingUseCase,
+];
+
+const QueryHandler = [AuthMeQueryUseCase];
 
 @Module({
   imports: [
+    CqrsModule,
     HelpingApplicationModule,
     UsersAccountModule,
     JwtModule.registerAsync({
@@ -25,7 +45,14 @@ import { HelpingApplicationModule } from './application/helping-application/help
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, AuthQueryRepository, LocalStrategy, JwtStrategy],
+  providers: [
+    ...CommandHandler,
+    ...QueryHandler,
+    AuthService,
+    AuthQueryRepository,
+    LocalStrategy,
+    JwtStrategy,
+  ],
   exports: [AuthService, AuthQueryRepository],
 })
 export class AccessModule {}
