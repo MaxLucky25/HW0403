@@ -17,7 +17,6 @@ import { CoreModule } from './core/core.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URL'),
-        autoIndex: false, // Отключает автоматическое создание индексов
       }),
     }),
     ThrottlerConfigModule,

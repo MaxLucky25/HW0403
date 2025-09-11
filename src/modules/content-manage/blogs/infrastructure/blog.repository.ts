@@ -6,7 +6,6 @@ import { DomainExceptionCode } from '../../../../core/exceptions/domain-exceptio
 import {
   CreateBlogDomainDto,
   FindByIdDto,
-  FindByNameDto,
 } from '../domain/dto/blog.domain.dto';
 
 @Injectable()
@@ -29,10 +28,6 @@ export class BlogRepository {
     }
 
     return blog;
-  }
-
-  async findByName(dto: FindByNameDto): Promise<BlogDocument | null> {
-    return this.BlogModel.findOne({ name: dto.name, deletedAt: null });
   }
 
   async createBlog(dto: CreateBlogDomainDto): Promise<BlogDocument> {
