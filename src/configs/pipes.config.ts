@@ -10,7 +10,6 @@ import {
 import { DomainExceptionCode } from '../core/exceptions/domain-exception-codes';
 
 //функция использует рекурсию для обхода объекта children при вложенных полях при валидации
-//поставьте логи и разберитесь как она работает
 export const errorFormatter = (
   errors: ValidationError[],
   errorMessage: Extension[] = [],

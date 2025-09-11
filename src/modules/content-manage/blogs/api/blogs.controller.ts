@@ -9,6 +9,7 @@ import {
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { BlogViewDto } from './view-dto/blog.view-dto';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params.input-dto';
@@ -34,6 +35,7 @@ import { UpdateBlogCommand } from '../application/usecase/update-blog.usecase';
 import { DeleteBlogCommand } from '../application/usecase/delete-blog.usecase';
 import { GetBlogByIdQuery } from '../application/query-usecase/get-blog.usecase';
 import { GetAllBlogsQuery } from '../application/query-usecase/get-all-blogs.usecase';
+import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.guard';
 
 @ApiTags('blogs')
 @Controller('blogs')
@@ -65,6 +67,7 @@ export class BlogsController {
   }
 
   @Post()
+  @UseGuards(BasicAuthGuard)
   @ApiOperation({ summary: 'Create a blog' })
   @ApiBody({ type: CreateBlogInputDto })
   @ApiResponse({ status: 201, description: 'Blog created' })
@@ -73,6 +76,7 @@ export class BlogsController {
   }
 
   @Put(':id')
+  @UseGuards(BasicAuthGuard)
   @ApiOperation({ summary: 'Update a blog' })
   @ApiParam({ name: 'id', description: 'Blog ID' })
   @ApiBody({ type: UpdateBlogInputDto })
@@ -86,6 +90,7 @@ export class BlogsController {
   }
 
   @Delete(':id')
+  @UseGuards(BasicAuthGuard)
   @ApiOperation({ summary: 'Delete a blog' })
   @ApiParam({ name: 'id', description: 'Blog ID' })
   @ApiResponse({ status: 204, description: 'Blog deleted' })
@@ -107,6 +112,7 @@ export class BlogsController {
   }
 
   @Post(':id/posts')
+  @UseGuards(BasicAuthGuard)
   @ApiOperation({ summary: 'Create post for a blog' })
   @ApiParam({ name: 'id', description: 'Blog ID' })
   @ApiBody({ type: CreatePostForBlogInputDto })

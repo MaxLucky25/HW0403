@@ -75,4 +75,12 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsString()
   NODE_ENV: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ADMIN_LOGIN: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ADMIN_PASSWORD: string;
 }

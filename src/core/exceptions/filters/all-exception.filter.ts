@@ -41,7 +41,7 @@ export class AllHttpExceptionsFilter implements ExceptionFilter {
       errorsMessages: [
         {
           message,
-          field: '',
+          field: ' We are working to fix this issue. Please try again later.',
         },
       ],
     };

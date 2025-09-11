@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { UserContextDto } from '../dto/user-context.dto';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  handleRequest(err: any, user: any) {
+  handleRequest(err: any, user: any): any {
     if (err || !user) {
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
@@ -13,7 +14,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         field: 'Login or Email',
       });
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return user;
+    return user as UserContextDto;
   }
 }

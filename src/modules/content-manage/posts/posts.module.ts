@@ -10,6 +10,7 @@ import { GetAllPostsQueryUseCase } from './application/query-usecases/get-all-po
 import { PostPersistenceModule } from './post-persistence.module';
 import { CreatePostForBlogUseCase } from './application/usecases/create-post-for-blog.usecase';
 import { GetPostsForBlogUseCase } from './application/query-usecases/get-all-posts-for-blog.usecase';
+import { PostLikesModule } from '../post-likes/post-likes.module';
 
 const CommandHandler = [
   CreatePostUseCase,
@@ -25,7 +26,12 @@ const QueryHandler = [
 ];
 
 @Module({
-  imports: [CqrsModule, BlogPersistenceModule, PostPersistenceModule],
+  imports: [
+    CqrsModule,
+    BlogPersistenceModule,
+    PostPersistenceModule,
+    PostLikesModule, // PostLikeQueryRepository будет доступен через этот модуль
+  ],
   providers: [...CommandHandler, ...QueryHandler],
   controllers: [PostsController],
   exports: [CreatePostForBlogUseCase, GetPostsForBlogUseCase],

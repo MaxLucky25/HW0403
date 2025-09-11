@@ -5,7 +5,10 @@ import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { PostQueryRepository } from '../../infrastructure/query/post.query-repository';
 
 export class GetAllPostsQuery {
-  constructor(public readonly queryParams: GetPostsQueryParams) {}
+  constructor(
+    public readonly queryParams: GetPostsQueryParams,
+    public readonly userId?: string,
+  ) {}
 }
 
 @QueryHandler(GetAllPostsQuery)
@@ -17,6 +20,6 @@ export class GetAllPostsQueryUseCase
   async execute(
     query: GetAllPostsQuery,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    return this.postQueryRepository.getAllPost(query.queryParams);
+    return this.postQueryRepository.getAllPost(query.queryParams, query.userId);
   }
 }

@@ -20,7 +20,6 @@ import { MeViewDto } from '../../user-accounts/api/view-dto/users.view-dto';
 import { CreateUserInputDto } from '../../user-accounts/api/input-dto/users.input-dto';
 import { LocalAuthGuard } from '../../guards/local/local-auth.guard';
 import { JwtAuthGuard } from '../../guards/bearer/jwt-auth-guard';
-import { ExtractUserFromRequest } from '../../guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../../guards/dto/user-context.dto';
 import { PasswordRecoveryInputDto } from './input-dto/password-recovery.input.dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input.dto';
@@ -35,6 +34,7 @@ import { NewPasswordCommand } from '../application/usecase/new-password.usecase'
 import { RegistrationConfirmationCommand } from '../application/usecase/registration-confirmation.usecase';
 import { RegistrationEmailResendingCommand } from '../application/usecase/registration-email-resending.usecase';
 import { AuthMeQuery } from '../application/query-usecase/auth-me.usecase';
+import { ExtractUserForJwtGuard } from '../../guards/decorators/param/extract-user-for-jwt-guard.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -180,7 +180,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user info' })
   @ApiResponse({ status: 200, description: 'Returns user info' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
+  async me(@ExtractUserForJwtGuard() user: UserContextDto): Promise<MeViewDto> {
     return this.queryBus.execute(new AuthMeQuery(user));
   }
 }
