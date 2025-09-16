@@ -23,9 +23,9 @@ describe('PostController (e2e)', () => {
 
     // Создаем блог для тестирования постов
     const blogData = {
-      name: 'Test Blog for Posts',
+      name: 'Test Blog',
       description: 'This is a test blog for testing posts',
-      websiteUrl: 'https://testblogforposts.com',
+      websiteUrl: 'https://testblog.com',
       createdAt: new Date(),
       isMembership: false,
     };
@@ -73,7 +73,7 @@ describe('PostController (e2e)', () => {
         likesCount: 0,
         dislikesCount: 0,
         myStatus: 'None',
-        newestLikes: null,
+        newestLikes: [],
       },
     });
 
@@ -158,90 +158,96 @@ describe('PostController (e2e)', () => {
     await request(server).get(`/posts/${createdPostId}`).expect(404);
   });
 
-  // Объединенный тест для валидации
-  it('should return 400 for invalid post data (POST)', async () => {
-    const testCases = [
-      {
-        data: {
-          title: '',
-          shortDescription: 'Valid short description',
-          content: 'Valid content with sufficient length',
-          blogId: createdBlogId,
-        },
-        description: 'empty title',
-      },
-      {
-        data: {
-          title: 'Short',
-          shortDescription: 'Valid short description',
-          content: 'Valid content with sufficient length',
-          blogId: createdBlogId,
-        },
-        description: 'title too short',
-      },
-      {
-        data: {
-          title: 'A'.repeat(101),
-          shortDescription: 'Valid short description',
-          content: 'Valid content with sufficient length',
-          blogId: createdBlogId,
-        },
-        description: 'title too long',
-      },
-      {
-        data: {
-          title: 'Valid Title',
-          shortDescription: '',
-          content: 'Valid content with sufficient length',
-          blogId: createdBlogId,
-        },
-        description: 'empty shortDescription',
-      },
-      {
-        data: {
-          title: 'Valid Title',
-          shortDescription: 'A'.repeat(51),
-          content: 'Valid content with sufficient length',
-          blogId: createdBlogId,
-        },
-        description: 'shortDescription too long',
-      },
-      {
-        data: {
-          title: 'Valid Title',
-          shortDescription: 'Valid short description',
-          content: '',
-          blogId: createdBlogId,
-        },
-        description: 'empty content',
-      },
-      {
-        data: {
-          title: 'Valid Title',
-          shortDescription: 'Valid short description',
-          content: 'A'.repeat(101),
-          blogId: createdBlogId,
-        },
-        description: 'content too long',
-      },
-      {
-        data: {
-          title: 'Valid Title',
-          shortDescription: 'Valid short description',
-          content: 'Valid content with sufficient length',
-          blogId: '',
-        },
-        description: 'empty blogId',
-      },
-    ];
+  // Отдельные тесты для валидации
+  it('should return 400 for empty title (POST)', async () => {
+    await request(server)
+      .post('/posts')
+      .set('Authorization', `Basic ${adminCredentials}`)
+      .send({
+        title: '',
+        shortDescription: 'Valid short description',
+        content: 'Valid content with sufficient length',
+        blogId: createdBlogId,
+      })
+      .expect(400);
+  });
 
-    for (const testCase of testCases) {
-      await request(server)
-        .post('/posts')
-        .set('Authorization', `Basic ${adminCredentials}`)
-        .send(testCase.data)
-        .expect(400);
-    }
+  it('should return 400 for title too long (POST)', async () => {
+    await request(server)
+      .post('/posts')
+      .set('Authorization', `Basic ${adminCredentials}`)
+      .send({
+        title: 'A'.repeat(31), // Превышает максимальную длину 30 символов
+        shortDescription: 'Valid short description',
+        content: 'Valid content with sufficient length',
+        blogId: createdBlogId,
+      })
+      .expect(400);
+  });
+
+  it('should return 400 for shortDescription too long (POST)', async () => {
+    await request(server)
+      .post('/posts')
+      .set('Authorization', `Basic ${adminCredentials}`)
+      .send({
+        title: 'Valid Title',
+        shortDescription: 'A'.repeat(101), // Превышает максимальную длину 100 символов
+        content: 'Valid content with sufficient length',
+        blogId: createdBlogId,
+      })
+      .expect(400);
+  });
+
+  it('should return 400 for empty shortDescription (POST)', async () => {
+    await request(server)
+      .post('/posts')
+      .set('Authorization', `Basic ${adminCredentials}`)
+      .send({
+        title: 'Valid Title',
+        shortDescription: '',
+        content: 'Valid content with sufficient length',
+        blogId: createdBlogId,
+      })
+      .expect(400);
+  });
+
+  it('should return 400 for content too long (POST)', async () => {
+    await request(server)
+      .post('/posts')
+      .set('Authorization', `Basic ${adminCredentials}`)
+      .send({
+        title: 'Valid Title',
+        shortDescription: 'Valid short description',
+        content: 'A'.repeat(1001), // Превышает максимальную длину 1000 символов
+        blogId: createdBlogId,
+      })
+      .expect(400);
+  });
+
+  it('should return 400 for empty content (POST)', async () => {
+    await request(server)
+      .post('/posts')
+      .set('Authorization', `Basic ${adminCredentials}`)
+      .send({
+        title: 'Valid Title',
+        shortDescription: 'Valid short description',
+        content: '',
+        blogId: createdBlogId,
+      })
+      .expect(400);
+  });
+
+  it('should return 400 for missing blogId (POST)', async () => {
+    await request(server)
+      .post('/posts')
+      .set('Authorization', `Basic ${adminCredentials}`)
+      .send({
+        title: 'Valid Title',
+        shortDescription: 'Valid short description',
+        content: 'Valid content with sufficient length',
+        // blogId отсутствует - обязательное поле
+      })
+      .expect(400);
   });
 
   // Объединенный тест для несуществующих ресурсов
@@ -294,9 +300,9 @@ describe('PostController (e2e)', () => {
 
   it('should handle maximum length fields (POST)', async () => {
     const maxLengthData: CreatePostInputDto = {
-      title: 'A'.repeat(100), // Максимальная длина 100 символов
-      shortDescription: 'A'.repeat(50), // Максимальная длина 50 символов
-      content: 'A'.repeat(100), // Максимальная длина 100 символов
+      title: 'A'.repeat(30), // Максимальная длина 30 символов
+      shortDescription: 'A'.repeat(100), // Максимальная длина 100 символов
+      content: 'A'.repeat(1000), // Максимальная длина 1000 символов
       blogId: createdBlogId!,
     };
 

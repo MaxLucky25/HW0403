@@ -1,9 +1,10 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
-import { PostLikeRepository } from '../../infrastructure/post-like.repository';
-import { LikePostInputDto } from '../../api/input-dto/like-post.input.dto';
-import { LikeStatus } from '../../domain/dto/like-status.enum';
-import { UsersRepository } from '../../../../auth-manage/user-accounts/infrastructure/user.repository';
+import { PostLikeRepository } from '../../../infrastructure/post-like.repository';
+import { PostRepository } from '../../../infrastructure/postRepository';
+import { LikePostInputDto } from '../../../api/input-dto/likesPost/like-post.input.dto';
+import { LikeStatus } from '../../../domain/dto/likesPost/like-status.enum';
+import { UsersRepository } from '../../../../../auth-manage/user-accounts/infrastructure/user.repository';
 
 export class UpdatePostLikeCommand {
   constructor(
@@ -25,10 +26,14 @@ export class UpdatePostLikeUseCase
   constructor(
     private postLikeRepository: PostLikeRepository,
     private userRepository: UsersRepository,
+    private postRepository: PostRepository,
   ) {}
 
   async execute(command: UpdatePostLikeCommand): Promise<void> {
     const { postId, userId, dto } = command;
+
+    // Валидация: проверяем существование поста
+    await this.postRepository.findOrNotFoundFail({ id: postId });
 
     if (dto.likeStatus === LikeStatus.None) {
       await this.removeUserReaction(postId, userId);

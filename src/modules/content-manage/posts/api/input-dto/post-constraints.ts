@@ -1,19 +1,14 @@
 export const postTitleConstraints = {
-  minLength: 6,
-  maxLength: 100,
+  minLength: 1,
+  maxLength: 30,
 };
 
 export const postShortDescriptionConstraints = {
-  minLength: 6,
-  maxLength: 50,
-};
-
-export const postContentConstraints = {
-  minLength: 6,
+  minLength: 1,
   maxLength: 100,
 };
 
-export const blogIdInPostConstraints = {
-  minLength: 24,
-  maxLength: 24,
+export const postContentConstraints = {
+  minLength: 1,
+  maxLength: 1000,
 };

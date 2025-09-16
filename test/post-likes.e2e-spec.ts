@@ -3,8 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { Server } from 'http';
 import { E2ETestHelper } from './helpers/e2e-test-helper';
-import { LikePostInputDto } from '../src/modules/content-manage/post-likes/api/input-dto/like-post.input.dto';
-import { LikeStatus } from '../src/modules/content-manage/post-likes/domain/dto/like-status.enum';
+import { LikePostInputDto } from '../src/modules/content-manage/posts/api/input-dto/likesPost/like-post.input.dto';
+import { LikeStatus } from '../src/modules/content-manage/posts/domain/dto/likesPost/like-status.enum';
 import { PostViewDto } from '../src/modules/content-manage/posts/api/view-dto/post.view-dto';
 import { CreatePostInputDto } from '../src/modules/content-manage/posts/api/input-dto/create-post.input.dto';
 
@@ -43,10 +43,10 @@ describe('Post Likes (e2e)', () => {
 
     // Создаем пост для тестирования лайков
     const postData: CreatePostInputDto = {
-      title: 'Test Post for Likes Functionality', // 6-100 символов
-      shortDescription: 'Test post for likes functionality', // 6-50 символов
+      title: 'Test Post for Likes', // 6-30 символов
+      shortDescription: 'Test post for likes functionality', // 6-100 символов
       content:
-        'This is a test post content with sufficient length to meet validation requirements for testing likes', // 6-100 символов (95 символов)
+        'This is a test post content with sufficient length to meet validation requirements for testing likes', // 6-1000 символов (95 символов)
       blogId: createdBlogId!,
     };
 

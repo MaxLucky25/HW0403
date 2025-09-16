@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
-import { LikeStatus } from './dto/like-status.enum';
-import { CreatePostLikeDomainDto } from './dto/post-like.domain.dto';
+import { LikeStatus } from './dto/likesPost/like-status.enum';
+import { CreatePostLikeDomainDto } from './dto/likesPost/post-like.domain.dto';
 
 @Schema({ timestamps: true })
 export class PostLike {

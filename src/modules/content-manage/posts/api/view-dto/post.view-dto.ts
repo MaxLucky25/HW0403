@@ -1,5 +1,5 @@
 import { PostDocument } from '../../domain/post.entity';
-import { ExtendedLikesInfoViewDto } from '../../../post-likes/api/view-dto/extended-likes-info.view-dto';
+import { ExtendedLikesInfoViewDto } from './likesPost/extended-likes-info.view-dto';
 
 export class PostViewDto {
   id: string;

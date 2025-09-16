@@ -16,13 +16,14 @@ export class UserFactory {
   ) {}
 
   async create(dto: CreateUserInputDto): Promise<UserDocument> {
-    const byLogin = await this.usersRepository.findByLoginOrEmail({
-      loginOrEmail: dto.login,
-    });
+    const [byLogin, byEmail, passwordHash] = await Promise.all([
+      this.usersRepository.findByLoginOrEmail({ loginOrEmail: dto.login }),
+      this.usersRepository.findByLoginOrEmail({ loginOrEmail: dto.email }),
+      this.bcryptService.generateHash({
+        password: dto.password,
+      }),
+    ]);
 
-    const byEmail = await this.usersRepository.findByLoginOrEmail({
-      loginOrEmail: dto.email,
-    });
     if (byLogin || byEmail) {
       const extensions: Extension[] = [];
       if (byLogin) {
@@ -38,9 +39,6 @@ export class UserFactory {
         extensions,
       });
     }
-    const passwordHash = await this.bcryptService.generateHash({
-      password: dto.password,
-    });
 
     const user: CreateUserDomainDto = {
       ...dto,

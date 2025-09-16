@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsStringWithTrim } from '../../../../../core/decorators/validation/is-string-with-trim';
 import {
-  blogIdInPostConstraints,
   postContentConstraints,
   postShortDescriptionConstraints,
   postTitleConstraints,
 } from './post-constraints';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreatePostInputDto {
   @ApiProperty({ example: 'Post title', description: 'Title of the post' })
@@ -33,9 +33,7 @@ export class CreatePostInputDto {
   content: string;
 
   @ApiProperty({ example: 'blogId123', description: 'Blog ID' })
-  @IsStringWithTrim(
-    blogIdInPostConstraints.minLength,
-    blogIdInPostConstraints.maxLength,
-  )
+  @IsNotEmpty()
+  @IsString()
   blogId: string;
 }

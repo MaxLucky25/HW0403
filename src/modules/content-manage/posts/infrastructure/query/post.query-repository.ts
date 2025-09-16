@@ -7,15 +7,18 @@ import { FilterQuery } from 'mongoose';
 import { sortDirectionToNumber } from '../../../../../core/dto/base.query-params.input-dto';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { PostLikeQueryRepository } from '../../../post-likes/infrastructure/query/post-like.query-repository';
 import { Injectable } from '@nestjs/common';
+import { PostLike, PostLikeModelType } from '../../domain/post-like.entity';
+import { PostLikesDomainService } from '../../domain/services/post-likes.domain-service';
 
 @Injectable()
 export class PostQueryRepository {
   constructor(
     @InjectModel(Post.name)
     private PostModel: PostModelType,
-    private postLikeQueryRepository: PostLikeQueryRepository,
+    @InjectModel(PostLike.name)
+    private postLikeModel: PostLikeModelType,
+    private postLikesDomainService: PostLikesDomainService,
   ) {}
 
   async getByIdNotFoundFail(id: string, userId?: string): Promise<PostViewDto> {
@@ -32,9 +35,13 @@ export class PostQueryRepository {
       });
     }
 
-    // Получаем актуальную информацию о лайках
+    // Получаем актуальную информацию о лайках через domain service
     const extendedLikesInfo =
-      await this.postLikeQueryRepository.getExtendedLikesInfo(id, userId);
+      await this.postLikesDomainService.getExtendedLikesInfo(
+        id,
+        this.postLikeModel,
+        userId,
+      );
 
     return PostViewDto.mapToView(post, extendedLikesInfo);
   }
@@ -64,8 +71,9 @@ export class PostQueryRepository {
     const items = await Promise.all(
       posts.map(async (post) => {
         const extendedLikesInfo =
-          await this.postLikeQueryRepository.getExtendedLikesInfo(
+          await this.postLikesDomainService.getExtendedLikesInfo(
             post._id.toString(),
+            this.postLikeModel,
             userId,
           );
         return PostViewDto.mapToView(post, extendedLikesInfo);
@@ -107,8 +115,9 @@ export class PostQueryRepository {
     const items = await Promise.all(
       posts.map(async (post) => {
         const extendedLikesInfo =
-          await this.postLikeQueryRepository.getExtendedLikesInfo(
+          await this.postLikesDomainService.getExtendedLikesInfo(
             post._id.toString(),
+            this.postLikeModel,
             userId,
           );
         return PostViewDto.mapToView(post, extendedLikesInfo);

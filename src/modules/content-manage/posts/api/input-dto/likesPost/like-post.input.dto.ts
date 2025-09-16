@@ -1,6 +1,6 @@
 import { IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { LikeStatus } from '../../domain/dto/like-status.enum';
+import { LikeStatus } from '../../../domain/dto/likesPost/like-status.enum';
 
 export class LikePostInputDto {
   @ApiProperty({

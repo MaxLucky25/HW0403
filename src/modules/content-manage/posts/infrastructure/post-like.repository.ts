@@ -9,8 +9,7 @@ import {
   CreatePostLikeDomainDto,
   FindPostLikeDto,
   UpdatePostLikeStatusDto,
-} from '../domain/dto/post-like.domain.dto';
-import { LikeStatus } from '../domain/dto/like-status.enum';
+} from '../domain/dto/likesPost/post-like.domain.dto';
 
 @Injectable()
 export class PostLikeRepository {
@@ -56,27 +55,5 @@ export class PostLikeRepository {
       postId: dto.postId,
     });
     return result.deletedCount > 0;
-  }
-
-  async countReactionsByPostAndStatus(
-    postId: string,
-    status: LikeStatus,
-  ): Promise<number> {
-    return this.postLikeModel.countDocuments({
-      postId,
-      status,
-    });
-  }
-
-  async getNewestLikesByPostAndStatus(
-    postId: string,
-    status: LikeStatus,
-    limit: number = 3,
-  ): Promise<PostLikeDocument[]> {
-    return await this.postLikeModel
-      .find({ postId, status })
-      .sort({ addedAt: -1 })
-      .limit(limit)
-      .exec();
   }
 }

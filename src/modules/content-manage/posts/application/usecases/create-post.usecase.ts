@@ -3,7 +3,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/postRepository';
 import { PostViewDto } from '../../api/view-dto/post.view-dto';
 import { BlogRepository } from '../../../blogs/infrastructure/blog.repository';
-import { PostLikeQueryRepository } from '../../../post-likes/infrastructure/query/post-like.query-repository';
+import { PostLikesDomainService } from '../../domain/services/post-likes.domain-service';
 
 export class CreatePostCommand {
   constructor(
@@ -19,7 +19,7 @@ export class CreatePostUseCase
   constructor(
     private postRepository: PostRepository,
     private blogRepository: BlogRepository,
-    private postLikeQueryRepository: PostLikeQueryRepository,
+    private postLikesDomainService: PostLikesDomainService,
   ) {}
 
   async execute(command: CreatePostCommand): Promise<PostViewDto> {
@@ -35,12 +35,9 @@ export class CreatePostUseCase
       blogName: blog.name,
     });
 
-    // Получаем информацию о лайках для нового поста (пустые лайки)
+    // Создаем пустую информацию о лайках для нового поста
     const extendedLikesInfo =
-      await this.postLikeQueryRepository.getExtendedLikesInfo(
-        post._id.toString(),
-        command.userId,
-      );
+      this.postLikesDomainService.createEmptyLikesInfo();
 
     return PostViewDto.mapToView(post, extendedLikesInfo);
   }

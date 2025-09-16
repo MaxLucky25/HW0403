@@ -120,11 +120,11 @@ describe('BlogController (e2e)', () => {
       },
       {
         data: {
-          name: 'A',
+          name: 'A'.repeat(16), // Превышает максимальную длину 15 символов
           description: 'Valid',
           websiteUrl: 'https://valid.com',
         },
-        description: 'name too short',
+        description: 'name too long',
       },
       {
         data: {
@@ -151,7 +151,7 @@ describe('BlogController (e2e)', () => {
   });
 
   it('should handle max length fields (POST)', async () => {
-    const longName = 'A'.repeat(20); // Предположим, лимит 100 символов
+    const longName = 'A'.repeat(15); // Максимальная длина 15 символов
     const longDescription = 'B'.repeat(100); // Лимит 500 символов
 
     const response = await request(server)

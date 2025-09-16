@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { LikeStatus } from '../../domain/dto/like-status.enum';
+import { LikeStatus } from '../../../domain/dto/likesPost/like-status.enum';
 import { LikeDetailsViewDto } from './like-details.view-dto';
 
 export class ExtendedLikesInfoViewDto {
@@ -25,7 +25,6 @@ export class ExtendedLikesInfoViewDto {
   @ApiProperty({
     description: 'Last 3 likes (status "Like")',
     type: [LikeDetailsViewDto],
-    nullable: true,
     example: [
       {
         addedAt: '2024-01-15T10:30:00.000Z',
@@ -39,5 +38,5 @@ export class ExtendedLikesInfoViewDto {
       },
     ],
   })
-  newestLikes: LikeDetailsViewDto[] | null;
+  newestLikes: LikeDetailsViewDto[];
 }
