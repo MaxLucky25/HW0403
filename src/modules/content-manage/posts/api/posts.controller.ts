@@ -38,8 +38,10 @@ import { ExtractUserForJwtGuard } from '../../../auth-manage/guards/decorators/p
 import { ExtractUserIdForJwtOptionalGuard } from '../../../auth-manage/guards/decorators/param/extract-user-id-for-jwt-optional-guard.decorator';
 import { UserContextDto } from '../../../auth-manage/guards/dto/user-context.dto';
 import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.guard';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('posts')
+@SkipThrottle()
 @Controller('posts')
 export class PostsController {
   constructor(

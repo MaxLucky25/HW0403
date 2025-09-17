@@ -11,7 +11,7 @@ export default (): Partial<EnvironmentVariables> => {
       : 600,
     JWT_REFRESH_EXPIRES_IN: process.env.JWT_REFRESH_EXPIRES_IN
       ? parseInt(process.env.JWT_REFRESH_EXPIRES_IN)
-      : 900,
+      : 3600000, // 1 час
 
     EMAIL_CONFIRMATION_EXPIRATION: process.env.EMAIL_CONFIRMATION_EXPIRATION
       ? parseInt(process.env.EMAIL_CONFIRMATION_EXPIRATION)

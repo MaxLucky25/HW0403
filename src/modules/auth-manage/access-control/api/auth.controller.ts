@@ -7,8 +7,6 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from '../application/auth.service';
-import { AuthQueryRepository } from '../infrastructure/query/auth.query-repository';
 import {
   ApiBody,
   ApiOperation,
@@ -29,19 +27,20 @@ import { LoginInputDto } from './input-dto/login.input.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { RegistrationUserCommand } from '../application/usecase/register-user.usecase';
 import { LoginUserCommand } from '../application/usecase/login-user.usecase';
+import { LoginResponseDto } from './view-dto/login.view-dto';
 import { PasswordRecoveryCommand } from '../application/usecase/password-recovery.usecase';
 import { NewPasswordCommand } from '../application/usecase/new-password.usecase';
 import { RegistrationConfirmationCommand } from '../application/usecase/registration-confirmation.usecase';
 import { RegistrationEmailResendingCommand } from '../application/usecase/registration-email-resending.usecase';
 import { AuthMeQuery } from '../application/query-usecase/auth-me.usecase';
 import { ExtractUserForJwtGuard } from '../../guards/decorators/param/extract-user-for-jwt-guard.decorator';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('Auth')
+@SkipThrottle()
 @Controller('auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
-    private authQueryRepository: AuthQueryRepository,
     private commandBus: CommandBus,
     private queryBus: QueryBus,
   ) {}
@@ -61,7 +60,9 @@ export class AuthController {
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({
     status: 200,
-    description: 'User logged in successfully, returns access token',
+    description:
+      'User logged in successfully, returns access token and sets refresh token in cookie',
+    type: LoginResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
@@ -74,7 +75,7 @@ export class AuthController {
       },
     },
   })
-  async login(@Body() body: LoginInputDto): Promise<{ accessToken: string }> {
+  async login(@Body() body: LoginInputDto): Promise<LoginResponseDto> {
     return this.commandBus.execute(new LoginUserCommand(body));
   }
 

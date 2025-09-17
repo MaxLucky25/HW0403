@@ -36,8 +36,10 @@ import { DeleteBlogCommand } from '../application/usecase/delete-blog.usecase';
 import { GetBlogByIdQuery } from '../application/query-usecase/get-blog.usecase';
 import { GetAllBlogsQuery } from '../application/query-usecase/get-all-blogs.usecase';
 import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.guard';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('blogs')
+@SkipThrottle()
 @Controller('blogs')
 export class BlogsController {
   constructor(
