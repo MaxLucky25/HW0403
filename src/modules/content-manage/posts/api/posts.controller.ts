@@ -39,6 +39,11 @@ import { ExtractUserIdForJwtOptionalGuard } from '../../../auth-manage/guards/de
 import { UserContextDto } from '../../../auth-manage/guards/dto/user-context.dto';
 import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.guard';
 import { SkipThrottle } from '@nestjs/throttler';
+import { CreateCommentCommand } from '../../comments/application/usecases/create-comment.usecase';
+import { GetCommentsForPostQuery } from '../../comments/application/query-usecases/get-comments-for-post.usecase';
+import { CreateCommentInputDto } from '../../comments/api/input-dto/create-comment.input.dto';
+import { GetCommentsQueryParams } from '../../comments/api/input-dto/get-comments-query-params.input-dto';
+import { CommentViewDto } from '../../comments/api/view-dto/comment.view-dto';
 
 @ApiTags('posts')
 @SkipThrottle()
@@ -132,6 +137,46 @@ export class PostsController {
   ): Promise<void> {
     return this.commandBus.execute(
       new UpdatePostLikeCommand(postId, user.id, dto),
+    );
+  }
+
+  @Get(':postId/comments')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiOperation({ summary: 'Get comments for post' })
+  @ApiParam({ name: 'postId', description: 'Post ID' })
+  @ApiQuery({ name: 'pageNumber', required: false })
+  @ApiQuery({ name: 'pageSize', required: false })
+  @ApiQuery({ name: 'sortBy', required: false })
+  @ApiQuery({ name: 'sortDirection', required: false })
+  @ApiResponse({ status: 200, description: 'List of comments' })
+  async getComments(
+    @Param('postId') postId: string,
+    @Query() query: GetCommentsQueryParams,
+    @ExtractUserIdForJwtOptionalGuard() userId?: string,
+  ): Promise<PaginatedViewDto<CommentViewDto[]>> {
+    return this.queryBus.execute(
+      new GetCommentsForPostQuery(postId, query, userId),
+    );
+  }
+
+  @Post(':postId/comments')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Create comment for post' })
+  @ApiParam({ name: 'postId', description: 'Post ID' })
+  @ApiBody({ type: CreateCommentInputDto })
+  @ApiResponse({ status: 201, description: 'Comment created' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 404,
+    description: 'If post with specified postId does not exist',
+  })
+  async createComment(
+    @Param('postId') postId: string,
+    @Body() dto: CreateCommentInputDto,
+    @ExtractUserForJwtGuard() user: UserContextDto,
+  ): Promise<CommentViewDto> {
+    return this.commandBus.execute(
+      new CreateCommentCommand(dto, postId, user.id, 'user'), // TODO: Get actual user login
     );
   }
 }
