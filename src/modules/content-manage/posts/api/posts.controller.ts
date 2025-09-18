@@ -77,7 +77,7 @@ export class PostsController {
   }
 
   @Post()
-  @UseGuards(BasicAuthGuard, OptionalJwtAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @ApiOperation({ summary: 'Create a post' })
   @ApiBody({ type: CreatePostInputDto })
   @ApiResponse({ status: 201, description: 'Post created' })
