@@ -1,8 +1,6 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
-import { DomainException } from '../../../../core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
@@ -12,28 +10,39 @@ export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-
-    // ВРЕМЕННОЕ РЕШЕНИЕ: выбрасываем ошибку с информацией о заголовках
-    const authHeader = request.headers.authorization;
-    const allHeaders = request.headers;
-
-    throw new DomainException({
-      code: DomainExceptionCode.InternalServerError,
-      message: `DEBUG INFO - Auth Header: ${authHeader}, All Headers: ${JSON.stringify(allHeaders)}`,
-      field: 'Debug',
-    });
+    console.log('🔍 OptionalJwtAuthGuard.canActivate - starting');
+    console.log(
+      '🔍 OptionalJwtAuthGuard.canActivate - auth header:',
+      request.headers.authorization,
+    );
 
     try {
       const result = await super.canActivate(context);
+      console.log(
+        '🔍 OptionalJwtAuthGuard.canActivate SUCCESS - result:',
+        result,
+      );
+      console.log(
+        '🔍 OptionalJwtAuthGuard.canActivate SUCCESS - request.user:',
+        request.user,
+      );
       return result as boolean;
-    } catch {
+    } catch (error) {
+      console.log('🔍 OptionalJwtAuthGuard.canActivate ERROR:', error.message);
+      console.log(
+        '🔍 OptionalJwtAuthGuard.canActivate ERROR - request.user after error:',
+        request.user,
+      );
       return true;
     }
   }
 
   handleRequest(err: any, user: any): any {
+    console.log('🔍 OptionalJwtAuthGuard.handleRequest called:', { err, user });
     // Не выбрасываем ошибку, если пользователь не найден
     // Если user === false, возвращаем undefined
-    return user === false ? undefined : user;
+    const result = user === false ? undefined : user;
+    console.log('🔍 OptionalJwtAuthGuard.handleRequest returning:', result);
+    return result;
   }
 }
