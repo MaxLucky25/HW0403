@@ -36,6 +36,8 @@ import { DeleteBlogCommand } from '../application/usecase/delete-blog.usecase';
 import { GetBlogByIdQuery } from '../application/query-usecase/get-blog.usecase';
 import { GetAllBlogsQuery } from '../application/query-usecase/get-all-blogs.usecase';
 import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.guard';
+import { OptionalJwtAuthGuard } from '../../../auth-manage/guards/bearer/optional-jwt-auth-guard';
+import { ExtractUserIdForJwtOptionalGuard } from '../../../auth-manage/guards/decorators/param/extract-user-id-for-jwt-optional-guard.decorator';
 import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('blogs')
@@ -102,15 +104,19 @@ export class BlogsController {
   }
 
   @Get(':id/posts')
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({ summary: 'Get posts for a blog' })
   @ApiParam({ name: 'id', description: 'Blog ID' })
   @ApiResponse({ status: 200, description: 'List of blog posts' })
   async getPostsForBlog(
     @Param('id') id: string,
     @Query() query: GetPostsQueryParams,
+    @ExtractUserIdForJwtOptionalGuard() userId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     await this.getById(id);
-    return this.queryBus.execute(new GetAllPostsForBlogQuery(id, query));
+    return this.queryBus.execute(
+      new GetAllPostsForBlogQuery(id, query, userId),
+    );
   }
 
   @Post(':id/posts')

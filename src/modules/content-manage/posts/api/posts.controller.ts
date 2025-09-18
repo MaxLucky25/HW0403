@@ -154,6 +154,7 @@ export class PostsController {
     @Query() query: GetCommentsQueryParams,
     @ExtractUserIdForJwtOptionalGuard() userId?: string,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
+    await this.getById(postId);
     return this.queryBus.execute(
       new GetCommentsForPostQuery(postId, query, userId),
     );
@@ -176,7 +177,7 @@ export class PostsController {
     @ExtractUserForJwtGuard() user: UserContextDto,
   ): Promise<CommentViewDto> {
     return this.commandBus.execute(
-      new CreateCommentCommand(dto, postId, user.id, 'user'), // TODO: Get actual user login
+      new CreateCommentCommand(dto, postId, user.id),
     );
   }
 }

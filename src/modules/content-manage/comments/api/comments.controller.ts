@@ -1,21 +1,16 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Param,
   Delete,
   Put,
-  Query,
   HttpStatus,
   HttpCode,
   UseGuards,
 } from '@nestjs/common';
 import { CommentViewDto } from './view-dto/comment.view-dto';
-import { GetCommentsQueryParams } from './input-dto/get-comments-query-params.input-dto';
-import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { UpdateCommentInputDto } from './input-dto/update-comment.input.dto';
-import { CreateCommentInputDto } from './input-dto/create-comment.input.dto';
 import { LikeCommentInputDto } from './input-dto/like-comment.input.dto';
 import {
   ApiTags,
@@ -23,10 +18,8 @@ import {
   ApiResponse,
   ApiParam,
   ApiBody,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { CreateCommentCommand } from '../application/usecases/create-comment.usecase';
 import { UpdateCommentCommand } from '../application/usecases/update-comment.usecase';
 import { DeleteCommentCommand } from '../application/usecases/delete-comment.usecase';
 import { GetCommentByIdQuery } from '../application/query-usecases/get-comment-by-id.usecase';

@@ -8,6 +8,7 @@ export class GetAllPostsForBlogQuery {
   constructor(
     public readonly blogId: string,
     public readonly queryParams: GetPostsQueryParams,
+    public readonly userId?: string,
   ) {}
 }
 
@@ -24,6 +25,7 @@ export class GetPostsForBlogUseCase
     return this.postQueryRepository.getAllPostForBlog(
       query.blogId,
       query.queryParams,
+      query.userId,
     );
   }
 }
