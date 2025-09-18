@@ -81,11 +81,8 @@ export class PostsController {
   @ApiOperation({ summary: 'Create a post' })
   @ApiBody({ type: CreatePostInputDto })
   @ApiResponse({ status: 201, description: 'Post created' })
-  async create(
-    @Body() body: CreatePostInputDto,
-    @ExtractUserIdForJwtOptionalGuard() userId?: string,
-  ): Promise<PostViewDto> {
-    return this.commandBus.execute(new CreatePostCommand(body, userId));
+  async create(@Body() body: CreatePostInputDto): Promise<PostViewDto> {
+    return this.commandBus.execute(new CreatePostCommand(body, undefined));
   }
 
   @Put(':id')
