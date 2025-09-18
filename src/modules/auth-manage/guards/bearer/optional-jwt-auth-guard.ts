@@ -1,45 +1,32 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { Reflector } from '@nestjs/core';
+import { DomainException } from '../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
-  constructor(
-    private jwtService: JwtService,
-    private configService: ConfigService,
-  ) {
+  constructor(private reflector: Reflector) {
     super();
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
+    // ВРЕМЕННОЕ РЕШЕНИЕ: выбрасываем ошибку с информацией о заголовках
+    const authHeader = request.headers.authorization;
+    const allHeaders = request.headers;
+
+    throw new DomainException({
+      code: DomainExceptionCode.InternalServerError,
+      message: `DEBUG INFO - Auth Header: ${authHeader}, All Headers: ${JSON.stringify(allHeaders)}`,
+      field: 'Debug',
+    });
+
     try {
       const result = await super.canActivate(context);
       return result as boolean;
-    } catch (error) {
-      // Если родительский метод не сработал, но есть токен,
-      // пытаемся обработать его вручную
-      const authHeader = request.headers.authorization;
-
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-
-        try {
-          const secret = this.configService.get<string>('JWT_SECRET');
-          if (secret) {
-            const payload = this.jwtService.verify(token, { secret });
-            request.user = payload; // Явно устанавливаем пользователя
-            return true;
-          }
-        } catch (jwtError) {
-          // Токен невалиден
-        }
-      }
-
-      // Нет токена или токен невалиден - разрешаем доступ без пользователя
-      request.user = undefined;
+    } catch {
       return true;
     }
   }
